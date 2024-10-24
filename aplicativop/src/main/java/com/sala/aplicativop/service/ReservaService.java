@@ -54,7 +54,7 @@ public class ReservaService {
         }
 
         // Verifica se a sala está ativa
-        if (!salaRepository.existsByIdAndStatus(reserva.getSala().getId(), 1)) {
+        if (!salaRepository.existsByIdAndStatus(reserva.getSala().getId(), true)) {
             throw new Exception("A sala não está disponível para reserva.");
         }
 
@@ -146,7 +146,7 @@ public class ReservaService {
                     .orElseThrow(() -> new Exception("Sala não encontrada"));
 
             // Verifica se a sala está ativa
-            if (!salaRepository.existsByIdAndStatus(novaReserva.getSala().getId(), 1)) {
+            if (!salaRepository.existsByIdAndStatus(novaReserva.getSala().getId(), true)) {
                 throw new Exception("A sala não está disponível para reserva.");
             }
 

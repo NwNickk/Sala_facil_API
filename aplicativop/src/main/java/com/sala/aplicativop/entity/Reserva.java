@@ -23,7 +23,7 @@ public class Reserva implements Serializable {
     private LocalDateTime dataPedido;
 
     @Column(name = "status")
-    private Integer status;
+    private Boolean status;
 
     @ManyToOne
     @JoinColumn(name = "sala_id", nullable = false)
@@ -32,6 +32,18 @@ public class Reserva implements Serializable {
     @ManyToOne
     @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
+
+    public Reserva() {
+    }
+
+    public Reserva(long idReserva, LocalDateTime dataReserva, LocalDateTime dataPedido, Boolean status, Sala sala, Usuario usuario) {
+        this.idReserva = idReserva;
+        this.dataReserva = dataReserva;
+        this.dataPedido = dataPedido;
+        this.status = status;
+        this.sala = sala;
+        this.usuario = usuario;
+    }
 
     // Getters e Setters
     public long getIdReserva() {
@@ -58,11 +70,11 @@ public class Reserva implements Serializable {
         this.dataPedido = dataPedido;
     }
 
-    public Integer getStatus() {
+    public Boolean getStatus() {
         return status;
     }
 
-    public void setStatus(Integer status) {
+    public void setStatus(Boolean status) {
         this.status = status;
     }
 

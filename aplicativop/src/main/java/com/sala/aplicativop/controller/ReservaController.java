@@ -32,7 +32,7 @@ public class ReservaController {
         return ResponseEntity.ok(reservas);
     }
 
-    @GetMapping("/{userId}/usuario")
+    @GetMapping("/{userId}/usuarios")
     public ResponseEntity<?> getReservasByUsuario(@PathVariable int userId) {
         try {
             List<Reserva> reservas = reservaService.findReservasByUsuarioId(userId);
@@ -42,7 +42,7 @@ public class ReservaController {
         }
     }
 
-    @GetMapping("/{salaId}/sala")
+    @GetMapping("/{salaId}/salas")
     public ResponseEntity<?> getReservasBySala(@PathVariable int salaId) {
         try {
             List<Reserva> reservas = reservaService.findReservasBySalaId(salaId);

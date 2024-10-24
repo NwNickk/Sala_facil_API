@@ -25,7 +25,7 @@ public class Sala implements Serializable {
     private String descricao;
 
     @Column(name = "status")
-    private Integer status;
+    private Boolean status;
 
     @OneToMany(mappedBy = "sala", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Reserva> reservas;
@@ -33,7 +33,7 @@ public class Sala implements Serializable {
     public Sala() {
     }
 
-    public Sala(long id, String nome, String departamento, String descricao, int status) {
+    public Sala(long id, String nome, String departamento, String descricao, Boolean status) {
         this.id = id;
         this.nome = nome;
         this.departamento = departamento;
@@ -73,11 +73,11 @@ public class Sala implements Serializable {
         this.descricao = descricao;
     }
 
-    public Integer getStatus() {
+    public Boolean getStatus() {
         return status;
     }
 
-    public void setStatus(Integer status) {
+    public void setStatus(Boolean status) {
         this.status = status;
     }
 

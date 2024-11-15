@@ -1,8 +1,11 @@
 package com.sala.aplicativop.controller;
 
+import com.sala.aplicativop.dto.ReservaDTO;
 import com.sala.aplicativop.entity.Reserva;
 import com.sala.aplicativop.service.ReservaService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,14 +19,9 @@ public class ReservaController {
     private ReservaService reservaService;
 
     @PostMapping
-    public ResponseEntity<?> criarReserva(@RequestBody Reserva reserva) {
-        try {
-            Reserva novaReserva = reservaService.saveReserva(reserva);
-            return ResponseEntity.ok(novaReserva);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest()
-                    .body(e.getMessage());
-        }
+    public ResponseEntity<Reserva> criarReserva(@Valid @RequestBody ReservaDTO reservaDTO) {
+        Reserva novaReserva = reservaService.saveReserva(reservaDTO);
+        return new ResponseEntity<>(novaReserva, HttpStatus.CREATED);
     }
 
     @GetMapping
@@ -33,53 +31,32 @@ public class ReservaController {
     }
 
     @GetMapping("/{userId}/usuarios")
-    public ResponseEntity<?> getReservasByUsuario(@PathVariable int userId) {
-        try {
-            List<Reserva> reservas = reservaService.findReservasByUsuarioId(userId);
-            return ResponseEntity.ok(reservas);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<List<Reserva>> findReservasByUsuarioId(@PathVariable long userId) {
+        List<Reserva> reservas = reservaService.findReservasByUsuarioId(userId);
+        return ResponseEntity.ok(reservas);
     }
 
     @GetMapping("/{salaId}/salas")
-    public ResponseEntity<?> getReservasBySala(@PathVariable int salaId) {
-        try {
-            List<Reserva> reservas = reservaService.findReservasBySalaId(salaId);
-            return ResponseEntity.ok(reservas);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<List<Reserva>> getReservasBySala(@PathVariable long salaId) {
+        List<Reserva> reservas = reservaService.findReservasBySalaId(salaId);
+        return ResponseEntity.ok(reservas);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> buscarReservaPorId(@PathVariable long id) {
-        try {
-            Reserva reserva = reservaService.getReservaById(id);
-            return ResponseEntity.ok(reserva);
-        } catch (Exception e){
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<Reserva> buscarReservaPorId(@PathVariable long id) {
+        Reserva reserva = reservaService.getReservaById(id);
+        return ResponseEntity.ok(reserva);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deletarReserva(@PathVariable long id) {
-        try {
-            reservaService.deleteReserva(id);
-            return ResponseEntity.ok("Reserva deletada com sucesso.");
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<?> deletarReserva(@PathVariable long id) {
+        reservaService.deleteReserva(id);
+        return new ResponseEntity<>("Reserva deletada com sucesso.", HttpStatus.OK);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> atualizarReserva(@PathVariable Long id, @RequestBody Reserva novaReserva) {
-        try {
-            Reserva reservaAtualizada = reservaService.updateReserva(id, novaReserva);
-            return ResponseEntity.ok(reservaAtualizada);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<Reserva> atualizarReserva(@PathVariable Long id, @RequestBody ReservaDTO novaReservaDTO) {
+        Reserva reservaAtualizada = reservaService.updateReserva(id, novaReservaDTO);
+        return new ResponseEntity<>(reservaAtualizada, HttpStatus.OK);
     }
-
 }

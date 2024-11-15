@@ -1,5 +1,6 @@
 package com.sala.aplicativop.entity;
 
+import com.sala.aplicativop.dto.ReservaDTO;
 import jakarta.persistence.*;
 
 import java.io.Serializable;
@@ -45,7 +46,14 @@ public class Reserva implements Serializable {
         this.usuario = usuario;
     }
 
-    // Getters e Setters
+    public Reserva(ReservaDTO dto,Usuario usuario, Sala sala) {
+        this.dataReserva = dto.dataReserva();
+        this.dataPedido = LocalDateTime.now();
+        this.status = dto.status();
+        this.usuario = usuario;
+        this.sala = sala;
+    }
+
     public long getIdReserva() {
         return idReserva;
     }

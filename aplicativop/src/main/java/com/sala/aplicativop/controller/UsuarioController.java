@@ -1,8 +1,11 @@
 package com.sala.aplicativop.controller;
 
+import com.sala.aplicativop.dto.UsuarioDTO;
 import com.sala.aplicativop.entity.Usuario;
 import com.sala.aplicativop.service.UsuarioService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,39 +25,26 @@ public class UsuarioController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getUsuarioById(@PathVariable long id) {
-        try {
-            Usuario usuario = service.findById(id);
-            return ResponseEntity.ok(usuario);
-        }  catch (Exception e){
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<Usuario> getUsuarioById(@PathVariable long id) {
+        Usuario usuario = service.findById(id);
+        return ResponseEntity.ok(usuario);
     }
 
     @PostMapping
-    public Usuario saveUsuario(@RequestBody Usuario usuario){
-        Usuario usuarioSalvo = service.saveUsuario(usuario);
-        return usuarioSalvo;
+    public ResponseEntity<Usuario> criarSala(@RequestBody @Valid UsuarioDTO usuarioDTO) {
+        Usuario novoUsuario = service.saveUsuario(usuarioDTO);
+        return new ResponseEntity<>(novoUsuario, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> editarUsuario(@PathVariable long id, @RequestBody Usuario novoUsuario) {
-        try {
-            Usuario usuarioEditado  = service.updateUsuario(id, novoUsuario);
-            return ResponseEntity.ok(usuarioEditado);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<Usuario> editarUsuario(@PathVariable long id, @RequestBody UsuarioDTO novoUsuarioDTO) {
+        Usuario usuarioEditado  = service.updateUsuario(id, novoUsuarioDTO);
+        return new ResponseEntity<>(usuarioEditado, HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deletarUsuario(@PathVariable Long id) {
-        try {
-            service.deleteUsuario(id);
-            return ResponseEntity.ok("Usuário deletado com sucesso.");
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<?> deletarUsuario(@PathVariable Long id) {
+        service.deleteUsuario(id);
+        return new ResponseEntity<>("Usuário deletado com sucesso.", HttpStatus.OK);
     }
-
 }

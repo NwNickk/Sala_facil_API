@@ -1,5 +1,6 @@
 package com.sala.aplicativop.entity;
 
+import com.sala.aplicativop.dto.SalaDTO;
 import jakarta.persistence.*;
 
 import java.io.Serializable;
@@ -33,12 +34,20 @@ public class Sala implements Serializable {
     public Sala() {
     }
 
-    public Sala(long id, String nome, String departamento, String descricao, Boolean status) {
+    public Sala(long id, String nome, String departamento, String descricao, Boolean status, List<Reserva> reservas) {
         this.id = id;
         this.nome = nome;
         this.departamento = departamento;
         this.descricao = descricao;
         this.status = status;
+        this.reservas = reservas;
+    }
+
+    public Sala(SalaDTO dto) {
+        this.nome = dto.nome();
+        this.departamento = dto.departamento();
+        this.descricao = dto.descricao();
+        this.status = dto.status();
     }
 
     public long getId() {

@@ -1,5 +1,6 @@
 package com.sala.aplicativop.entity;
 
+import com.sala.aplicativop.dto.UsuarioDTO;
 import jakarta.persistence.*;
 
 import java.io.Serializable;
@@ -21,8 +22,8 @@ public class Usuario implements Serializable {
     @Column(name = "email")
     private String email;
 
-    @Column(name = "phone")
-    private String phone;
+    @Column(name = "telefone")
+    private String telefone;
 
     @Column(name = "cpf")
     private String cpf;
@@ -33,12 +34,20 @@ public class Usuario implements Serializable {
     public Usuario() {
     }
 
-    public Usuario(long id, String nome, String email, String phone, String cpf) {
+    public Usuario(long id, String nome, String email, String telefone, String cpf, List<Reserva> reservas) {
         this.id = id;
         this.nome = nome;
         this.email = email;
-        this.phone = phone;
+        this.telefone = telefone;
         this.cpf = cpf;
+        this.reservas = reservas;
+    }
+
+    public Usuario(UsuarioDTO dto) {
+        this.nome = dto.nome();
+        this.email = dto.email();
+        this.telefone = dto.telefone();
+        this.cpf = dto.cpf();
     }
 
     public long getId() {
@@ -65,12 +74,12 @@ public class Usuario implements Serializable {
         this.email = email;
     }
 
-    public String getPhone() {
-        return phone;
+    public String getTelefone() {
+        return telefone;
     }
 
-    public void setPhone(String phone) {
-        this.phone = phone;
+    public void setTelefone(String telefone) {
+        this.telefone = telefone;
     }
 
     public String getCpf() {

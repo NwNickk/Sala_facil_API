@@ -1,8 +1,10 @@
 package com.sala.aplicativop.service;
 
+import com.sala.aplicativop.dto.ReservaDTO;
 import com.sala.aplicativop.entity.Reserva;
 import com.sala.aplicativop.entity.Sala;
 import com.sala.aplicativop.entity.Usuario;
+import com.sala.aplicativop.exceptions.*;
 import com.sala.aplicativop.repository.ReservaRepository;
 import com.sala.aplicativop.repository.SalaRepository;
 import com.sala.aplicativop.repository.UsuarioRepository;
@@ -24,161 +26,109 @@ public class ReservaService {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
-    public Reserva saveReserva(Reserva reserva) throws Exception {
+    public Reserva saveReserva(ReservaDTO reservaDTO) {
+        Usuario usuario = usuarioRepository.findById(reservaDTO.usuarioId())
+                .orElseThrow(UsuarioNotFoundException::new);
 
-        // Verifica se o usuário existe
-        Usuario usuario = usuarioRepository.findById(reserva.getUsuario().getId())
-                .orElseThrow(() -> new Exception("Usuário não encontrado"));
+        Sala sala = salaRepository.findById(reservaDTO.salaId())
+                .orElseThrow(SalaNotFoundException::new);
 
-        // Verifica se a sala existe
-        Sala sala = salaRepository.findById(reserva.getSala().getId())
-                .orElseThrow(() -> new Exception("Sala não encontrada"));
-
-        // Verifica se a data da reserva já não passou
-        if (reserva.getDataReserva().isBefore(LocalDateTime.now())) {
-            throw new Exception("Não é possível reservar uma data passada.");
+        if (reservaDTO.dataReserva().isBefore(LocalDateTime.now())) {
+            throw new DataPassadaException();
         }
-
-        // Verifica se a data da reserva é no máximo 30 dias no futuro
-        if (reserva.getDataReserva().isAfter(LocalDateTime.now().plusDays(30))) {
-            throw new Exception("Não é permitido reservar com mais de 30 dias de antecedência.");
+        if (reservaDTO.dataReserva().isAfter(LocalDateTime.now().plusDays(30))) {
+            throw new MuitaAntecedenciaException();
         }
-
-        // Verifica se o usuário já tem uma reserva no mesmo horário
-        boolean usuarioJaReservou = reservaRepository.existsByUsuarioAndDataReserva(
-                reserva.getUsuario(), reserva.getDataReserva()
-        );
-
-        if (usuarioJaReservou) {
-            throw new Exception("O usuário já possui uma reserva para o mesmo horário.");
+        if (reservaRepository.existsByUsuarioAndDataReserva(usuario, reservaDTO.dataReserva())) {
+            throw new JaTemReservaException();
         }
-
-        // Verifica se a sala está ativa
-        if (!salaRepository.existsByIdAndStatus(reserva.getSala().getId(), true)) {
-            throw new Exception("A sala não está disponível para reserva.");
+        if (!sala.getStatus()) {
+            throw new SalaIndisponivelException();
         }
-
-        // Verifica se a sala já está reservada para o mesmo horário
-        if (reservaRepository.existsBySalaAndDataReserva(reserva.getSala(), reserva.getDataReserva())) {
-            throw new Exception("A sala já está reservada para esse dia e horário.");
+        if (reservaRepository.existsBySalaAndDataReserva(sala, reservaDTO.dataReserva())) {
+            throw new SalaReservadaException();
         }
-
-        // Atualiza os objetos reserva com o usuário e a sala
-        reserva.setUsuario(usuario);
-        reserva.setSala(sala);
-
-        // Define automaticamente a data do pedido como a data e hora atual
-        reserva.setDataPedido(LocalDateTime.now());
-
-        return reservaRepository.save(reserva);
+        Reserva novaReserva = new Reserva(reservaDTO, usuario, sala);
+        return reservaRepository.save(novaReserva);
     }
 
     public List<Reserva> getAllReservas() {
         return reservaRepository.findAll();
     }
 
-    // Método para listar todas as reservas de um usuário
-    public List<Reserva> findReservasByUsuarioId(long userId) throws Exception {
+    public List<Reserva> findReservasByUsuarioId(long userId) {
         Usuario usuario = usuarioRepository.findById(userId)
-                .orElseThrow(() -> new Exception("Usuário não encontrado"));
+                .orElseThrow(UsuarioNotFoundException::new);
         return reservaRepository.findAllByUsuario(usuario);
     }
 
-    // Método para listar todas as reservas de uma sala
-    public  List<Reserva> findReservasBySalaId(long salaId) throws Exception {
+    public  List<Reserva> findReservasBySalaId(long salaId) {
         Sala sala = salaRepository.findById(salaId)
-                .orElseThrow(() -> new Exception("Sala não encontrada"));
+                .orElseThrow(SalaNotFoundException::new);
         return reservaRepository.findAllBySala(sala);
     }
 
-    public Reserva getReservaById(Long id) throws Exception {
+    public Reserva getReservaById(Long id) {
         Reserva reserva = reservaRepository.findById(id)
-                .orElseThrow(() -> new Exception("Reserva não encontrada"));
+                .orElseThrow(ReservaNotFoundException::new);
         return reserva;
     }
 
-    public void deleteReserva(long id) throws Exception {
+    public void deleteReserva(long id) {
         Reserva reserva = reservaRepository.findById(id)
-                .orElseThrow(() -> new Exception("Reserva não encontrada"));
-
-        // Verifica se a data da reserva já passou
+                .orElseThrow(ReservaNotFoundException::new);
         if (reserva.getDataReserva().isBefore(LocalDateTime.now())) {
-            throw new Exception("Não é possível deletar uma reserva que já ocorreu.");
+            throw new DataPassadaException();
         }
         reservaRepository.delete(reserva);
     }
 
-    public Reserva updateReserva(Long id, Reserva novaReserva) throws Exception {
+    public Reserva updateReserva(Long id, ReservaDTO novaReservaDTO) {
         Reserva reservaExistente = reservaRepository.findById(id)
-                .orElseThrow(() -> new Exception("Reserva não encontrada"));
-
-        // Verifica se a data da reserva já passou
+                .orElseThrow(ReservaNotFoundException::new);
         if (reservaExistente.getDataReserva().isBefore(LocalDateTime.now())) {
-            throw new Exception("Não é possível atualizar uma reserva que já ocorreu.");
+            throw new ReservaJaOcorridaException();
         }
-
-        // Verifica se a nova data da reserva é no máximo 30 dias no futuro
-        if (novaReserva.getDataReserva() != null &&
-                novaReserva.getDataReserva().isAfter(LocalDateTime.now().plusDays(30))) {
-            throw new Exception("Não é permitido reservar com mais de 30 dias de antecedência.");
+        if (novaReservaDTO.dataReserva() != null && novaReservaDTO.dataReserva().isBefore(LocalDateTime.now())) {
+            throw new DataPassadaException();
         }
+        if (novaReservaDTO.dataReserva() != null &&
+                novaReservaDTO.dataReserva().isAfter(LocalDateTime.now().plusDays(30))) {
+            throw new MuitaAntecedenciaException();
+        }
+        if (novaReservaDTO.usuarioId() != null) {
+            Usuario usuario = usuarioRepository.findById(novaReservaDTO.usuarioId())
+                    .orElseThrow(UsuarioNotFoundException::new);
 
-        // Se for atualizar o usuário, verifica se o novo usuário existe
-        if (novaReserva.getUsuario() != null) {
-            Usuario usuario = usuarioRepository.findById(novaReserva.getUsuario().getId())
-                    .orElseThrow(() -> new Exception("Usuário não encontrado"));
-
-            // Verifica se o usuário já tem uma reserva para o mesmo horário
-            boolean usuarioJaReservou = reservaRepository.existsByUsuarioAndDataReserva(
-                    novaReserva.getUsuario(), novaReserva.getDataReserva() != null ? novaReserva.getDataReserva() : reservaExistente.getDataReserva());
-
-            if (usuarioJaReservou) {
-                throw new Exception("O usuário já possui uma reserva para o mesmo horário.");
+            if (reservaRepository.existsByUsuarioAndDataReserva(usuario,
+                    novaReservaDTO.dataReserva() != null ? novaReservaDTO.dataReserva() : reservaExistente.getDataReserva())) {
+                throw new JaTemReservaException();
             }
-
-            // Atualiza o usuário
-            reservaExistente.setUsuario(novaReserva.getUsuario());
+            reservaExistente.setUsuario(usuario);
         }
 
-        // Se for atualizar a sala, verifica se a nova sala existe
-        if (novaReserva.getSala() != null) {
-            Sala sala = salaRepository.findById(novaReserva.getSala().getId())
-                    .orElseThrow(() -> new Exception("Sala não encontrada"));
+        if (novaReservaDTO.salaId() != null) {
+            Sala sala = salaRepository.findById(novaReservaDTO.salaId())
+                    .orElseThrow(SalaNotFoundException::new);
 
-            // Verifica se a sala está ativa
-            if (!salaRepository.existsByIdAndStatus(novaReserva.getSala().getId(), true)) {
-                throw new Exception("A sala não está disponível para reserva.");
+            if (!salaRepository.existsByIdAndStatus(novaReservaDTO.salaId(), true)) {
+                throw new SalaIndisponivelException();
             }
-
-            // Verifica se a sala já está reservada para o mesmo horário
-            boolean salaJaReservada = reservaRepository.existsBySalaAndDataReserva(
-                    novaReserva.getSala(), novaReserva.getDataReserva() != null ? novaReserva.getDataReserva() : reservaExistente.getDataReserva());
-
-            if (salaJaReservada) {
-                throw new Exception("A sala já está reservada para esse dia e horário.");
+            if (reservaRepository.existsBySalaAndDataReserva(sala,
+                    novaReservaDTO.dataReserva() != null ? novaReservaDTO.dataReserva() : reservaExistente.getDataReserva())) {
+                throw new SalaReservadaException();
             }
-
-            // Atualiza a sala
-            reservaExistente.setSala(novaReserva.getSala());
+            reservaExistente.setSala(sala);
         }
 
-        // Atualiza apenas os campos que foram fornecidos
-        if (novaReserva.getDataReserva() != null) {
-            reservaExistente.setDataReserva(novaReserva.getDataReserva());
+        if (novaReservaDTO.dataReserva() != null) {
+            reservaExistente.setDataReserva(novaReservaDTO.dataReserva());
         }
-        if (novaReserva.getSala() != null) {
-            reservaExistente.setSala(novaReserva.getSala());
+        if (novaReservaDTO.status() != null) {
+            reservaExistente.setStatus(novaReservaDTO.status());
         }
-        if (novaReserva.getUsuario() != null) {
-            reservaExistente.setUsuario(novaReserva.getUsuario());
-        }
-        if (novaReserva.getStatus() != null) {
-            reservaExistente.setStatus(novaReserva.getStatus());
-        }
-
         reservaExistente.setDataPedido(LocalDateTime.now());
 
         return reservaRepository.save(reservaExistente);
     }
-
 }

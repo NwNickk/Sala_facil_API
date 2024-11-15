@@ -1,6 +1,10 @@
 package com.sala.aplicativop.service;
 
+import com.sala.aplicativop.dto.SalaDTO;
 import com.sala.aplicativop.entity.Sala;
+import com.sala.aplicativop.exceptions.NomeSalaInvalidoException;
+import com.sala.aplicativop.exceptions.SalaNotFoundException;
+import com.sala.aplicativop.exceptions.SalaReservadaException;
 import com.sala.aplicativop.repository.SalaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,33 +21,45 @@ public class SalaService {
         return repository.findAll();
     }
 
-    public Sala saveSala(Sala sala){
-        Sala salaSalva = repository.save(sala);
-        return salaSalva;
+    public Sala saveSala(SalaDTO salaDTO){
+        if (repository.existsByNome(salaDTO.nome())) {
+            throw new SalaReservadaException();
+        }
+        Sala sala = new Sala(salaDTO);
+        return repository.save(sala);
     }
 
-    public Sala findById(long id) throws Exception {
+    public Sala findById(long id) {
         Sala sala = repository.findById(id)
-                .orElseThrow(() -> new Exception("Sala não encontrada"));
+                .orElseThrow(SalaNotFoundException::new);
         return sala;
     }
 
-    public Sala updateSala(Long id, Sala sala) throws Exception {
+    public Sala updateSala(Long id, SalaDTO salaDTO) {
         Sala salaExistente = repository.findById(id)
-                .orElseThrow(() -> new Exception("Sala não encontrada"));
+                .orElseThrow(SalaNotFoundException::new);
 
-        salaExistente.setNome(sala.getNome() != null ? sala.getNome() : salaExistente.getNome());
-        salaExistente.setDepartamento(sala.getDepartamento() != null ? sala.getDepartamento() : salaExistente.getDepartamento());
-        salaExistente.setDescricao(sala.getDescricao() != null ? sala.getDescricao() : salaExistente.getDescricao());
-        salaExistente.setStatus(sala.getStatus() != null ? sala.getStatus() : salaExistente.getStatus());
-        
-        Sala salaSalva = repository.save(salaExistente);
-        return salaSalva;
+        if (salaDTO.nome() != null && !salaDTO.nome().equals(salaExistente.getNome())) {
+            if (repository.existsByNome(salaDTO.nome())) {
+                throw new NomeSalaInvalidoException();
+            }
+            salaExistente.setNome(salaDTO.nome());
+        }
+        if (salaDTO.departamento() != null) {
+            salaExistente.setDepartamento(salaDTO.departamento());
+        }
+        if (salaDTO.descricao() != null) {
+            salaExistente.setDescricao(salaDTO.descricao());
+        }
+        if (salaDTO.status() != null) {
+            salaExistente.setStatus(salaDTO.status());
+        }
+        return repository.save(salaExistente);
     }
 
-    public void deleteSala(long id) throws Exception {
+    public void deleteSala(long id) {
         Sala sala = repository.findById(id)
-                        .orElseThrow(() -> new Exception("Sala não encontrada"));
+                        .orElseThrow(SalaNotFoundException::new);
         repository.delete(sala);
     }
 }

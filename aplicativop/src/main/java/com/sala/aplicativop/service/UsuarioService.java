@@ -1,6 +1,8 @@
 package com.sala.aplicativop.service;
 
+import com.sala.aplicativop.dto.UsuarioDTO;
 import com.sala.aplicativop.entity.Usuario;
+import com.sala.aplicativop.exceptions.*;
 import com.sala.aplicativop.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,33 +19,63 @@ public class UsuarioService {
         return repository.findAll();
     }
 
-    public Usuario saveUsuario(Usuario usuario){
-        Usuario usuarioSalvo = repository.save(usuario);
-        return usuarioSalvo;
+    public Usuario saveUsuario(UsuarioDTO usuarioDTO){
+        if (repository.existsByNome(usuarioDTO.nome())) {
+            throw new NomeUsuarioInvalidoException();
+        }
+        if (repository.existsByEmail(usuarioDTO.email())) {
+            throw new EmailInvalidoException();
+        }
+        if (repository.existsByTelefone(usuarioDTO.telefone())) {
+            throw new TelefoneInvalidoException();
+        }
+        if (repository.existsByCpf(usuarioDTO.cpf())) {
+            throw new CpfInvalidoException();
+        }
+        Usuario usuario = new Usuario(usuarioDTO);
+        return repository.save(usuario);
     }
 
-    public Usuario findById(long id) throws Exception {
+    public Usuario findById(long id) {
         Usuario usuario = repository.findById(id)
-                .orElseThrow(() -> new Exception("Usuário não encontrado"));
+                .orElseThrow(UsuarioNotFoundException::new);
         return usuario;
     }
 
-    public Usuario updateUsuario(Long id, Usuario usuario) throws Exception {
+    public Usuario updateUsuario(Long id, UsuarioDTO usuarioDTO) {
         Usuario usuarioExistente = repository.findById(id)
-                .orElseThrow(() -> new Exception("Usuário não encontrado"));
+                .orElseThrow(UsuarioNotFoundException::new);
 
-        usuarioExistente.setNome(usuario.getNome() != null ? usuario.getNome() : usuarioExistente.getNome());
-        usuarioExistente.setEmail(usuario.getEmail() != null ? usuario.getEmail() : usuarioExistente.getEmail());
-        usuarioExistente.setPhone(usuario.getPhone() != null ? usuario.getPhone() : usuarioExistente.getPhone());
-        usuarioExistente.setCpf(usuario.getCpf() != null ? usuario.getCpf() : usuarioExistente.getCpf());
-
-        Usuario usuarioSalvo = repository.save(usuarioExistente);
-        return usuarioSalvo;
+        if (usuarioDTO.nome() != null && !usuarioDTO.nome().equals(usuarioExistente.getNome())) {
+            if (repository.existsByNome(usuarioDTO.nome())) {
+                throw new NomeUsuarioInvalidoException();
+            }
+            usuarioExistente.setNome(usuarioDTO.nome());
+        }
+        if (usuarioDTO.email() != null && !usuarioDTO.email().equals(usuarioExistente.getEmail())) {
+            if (repository.existsByEmail(usuarioDTO.email())) {
+                throw new EmailInvalidoException();
+            }
+            usuarioExistente.setEmail(usuarioDTO.email());
+        }
+        if (usuarioDTO.telefone() != null && !usuarioDTO.telefone().equals(usuarioExistente.getTelefone())) {
+            if (repository.existsByTelefone(usuarioDTO.telefone())) {
+                throw new TelefoneInvalidoException();
+            }
+            usuarioExistente.setTelefone(usuarioDTO.telefone());
+        }
+        if (usuarioDTO.cpf() != null && !usuarioDTO.cpf().equals(usuarioExistente.getCpf())) {
+            if (repository.existsByCpf(usuarioDTO.cpf())) {
+                throw new CpfInvalidoException();
+            }
+            usuarioExistente.setCpf(usuarioDTO.cpf());
+        }
+        return repository.save(usuarioExistente);
     }
 
-    public void deleteUsuario(long id) throws Exception {
+    public void deleteUsuario(long id) {
         Usuario usuario = repository.findById(id)
-                .orElseThrow(() -> new Exception("Usuário não encontrado"));
+                .orElseThrow(UsuarioNotFoundException::new);
         repository.delete(usuario);
     }
 }

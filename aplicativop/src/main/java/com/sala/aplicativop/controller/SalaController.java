@@ -1,8 +1,11 @@
 package com.sala.aplicativop.controller;
 
+import com.sala.aplicativop.dto.SalaDTO;
 import com.sala.aplicativop.entity.Sala;
 import com.sala.aplicativop.service.SalaService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,38 +24,26 @@ public class SalaController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getSalaById(@PathVariable long id) {
-        try {
-            Sala sala = service.findById(id);
-            return ResponseEntity.ok(sala);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<Sala> getSalaById(@PathVariable long id) {
+        Sala sala = service.findById(id);
+        return ResponseEntity.ok(sala);
     }
 
     @PostMapping
-    public Sala saveSala(@RequestBody Sala sala){
-        Sala salaSalva = service.saveSala(sala);
-        return salaSalva;
+    public ResponseEntity<Sala> criarSala(@RequestBody @Valid SalaDTO salaDTO) {
+        Sala novaSala = service.saveSala(salaDTO);
+        return new ResponseEntity<>(novaSala, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> editarSala(@PathVariable long id, @RequestBody Sala novaSala) {
-        try {
-           Sala salaEditada  = service.updateSala(id, novaSala);
-            return ResponseEntity.ok(salaEditada);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<Sala> editarSala(@PathVariable long id, @RequestBody SalaDTO novaSalaDTO) {
+        Sala salaEditada  = service.updateSala(id, novaSalaDTO);
+        return new ResponseEntity<>(salaEditada, HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deletarSala(@PathVariable Long id) {
-        try {
-            service.deleteSala(id);
-            return ResponseEntity.ok("Sala deletada com sucesso.");
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<?> deletarSala(@PathVariable Long id) {
+        service.deleteSala(id);
+        return new ResponseEntity<>("Sala deletada com sucesso.", HttpStatus.OK);
     }
 }

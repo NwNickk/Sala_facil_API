@@ -1,5 +1,7 @@
 package com.sala.aplicativop.controller;
 
+import com.sala.aplicativop.dto.AuthenticationDTO;
+import com.sala.aplicativop.dto.LoginResponseDTO;
 import com.sala.aplicativop.dto.UsuarioDTO;
 import com.sala.aplicativop.entity.Usuario;
 import com.sala.aplicativop.service.UsuarioService;
@@ -13,7 +15,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping(value = "usuarios")
-
 public class UsuarioController {
 
     @Autowired
@@ -30,10 +31,16 @@ public class UsuarioController {
         return ResponseEntity.ok(usuario);
     }
 
-    @PostMapping
-    public ResponseEntity<Usuario> criarSala(@RequestBody @Valid UsuarioDTO usuarioDTO) {
+    @PostMapping("/register")
+    public ResponseEntity<Usuario> criarUsuario(@RequestBody @Valid UsuarioDTO usuarioDTO) {
         Usuario novoUsuario = service.saveUsuario(usuarioDTO);
         return new ResponseEntity<>(novoUsuario, HttpStatus.CREATED);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponseDTO> login(@RequestBody @Valid AuthenticationDTO data) {
+        String token = service.login(data);
+        return ResponseEntity.ok(new LoginResponseDTO(token));
     }
 
     @PutMapping("/{id}")

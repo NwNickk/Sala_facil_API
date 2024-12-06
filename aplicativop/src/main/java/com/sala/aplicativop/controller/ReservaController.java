@@ -5,10 +5,12 @@ import com.sala.aplicativop.entity.Reserva;
 import com.sala.aplicativop.service.ReservaService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -28,6 +30,11 @@ public class ReservaController {
     public ResponseEntity<List<Reserva>> listarReservas() {
         List<Reserva> reservas = reservaService.getAllReservas();
         return ResponseEntity.ok(reservas);
+    }
+
+    @GetMapping("/data/{dataReserva}")
+    public List<Reserva> getReservasByData(@PathVariable String dataReserva) {
+        return reservaService.getReservasByData(dataReserva);
     }
 
     @GetMapping("/{userId}/usuarios")

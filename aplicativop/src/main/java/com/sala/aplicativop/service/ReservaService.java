@@ -11,7 +11,9 @@ import com.sala.aplicativop.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
@@ -66,6 +68,18 @@ public class ReservaService {
         Sala sala = salaRepository.findById(salaId)
                 .orElseThrow(SalaNotFoundException::new);
         return reservaRepository.findAllBySala(sala);
+    }
+    public List<Reserva> getReservasByData(String dataReservaString) {
+        LocalDate dataReserva = LocalDate.parse(dataReservaString, DateTimeFormatter.ISO_LOCAL_DATE);
+        LocalDateTime startOfDay = dataReserva.atStartOfDay();
+        LocalDateTime endOfDay = dataReserva.atTime(23, 59, 59);
+
+        List<Reserva> reservas = reservaRepository.findByDataReservaBetween(startOfDay, endOfDay);
+
+        if (reservas.isEmpty()) {
+            throw new DataReservaNotFoundException();
+        }
+        return reservas;
     }
 
     public Reserva getReservaById(Long id) {

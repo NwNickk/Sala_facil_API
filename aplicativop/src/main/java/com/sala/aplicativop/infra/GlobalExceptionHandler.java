@@ -92,4 +92,22 @@ public class GlobalExceptionHandler {
         RestErrorMessage error = new RestErrorMessage(HttpStatus.CONFLICT, e.getMessage());
         return new ResponseEntity<>(error, HttpStatus.CONFLICT);
     }
+
+    @ExceptionHandler(LoginAlreadyExistsException.class)
+    public ResponseEntity<RestErrorMessage> handleLoginInvalido(LoginAlreadyExistsException e) {
+        RestErrorMessage error = new RestErrorMessage(HttpStatus.CONFLICT, e.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(DataReservaNotFoundException.class)
+    public ResponseEntity<RestErrorMessage> handleDataReservaNotFound(DataReservaNotFoundException e) {
+        RestErrorMessage error = new RestErrorMessage(HttpStatus.CONFLICT, e.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(InvalidTokenException.class)
+    public ResponseEntity<RestErrorMessage> handleInvalidToken(InvalidTokenException e) {
+        RestErrorMessage error = new RestErrorMessage(HttpStatus.UNAUTHORIZED, e.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
+    }
 }
